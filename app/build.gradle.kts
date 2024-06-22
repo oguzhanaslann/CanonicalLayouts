@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -59,6 +60,16 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+//    implementation("androidx.compose.material3.adaptive:adaptive:1.0.0-beta03")
+//    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.0.0-beta03")
+//    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.0.0-beta03")
+
+    implementation(libs.adaptive)
+    implementation(libs.adaptive.layout)
+    implementation(libs.adaptive.navigation)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
