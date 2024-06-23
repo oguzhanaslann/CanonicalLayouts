@@ -20,7 +20,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -53,7 +56,7 @@ import androidx.navigation.compose.rememberNavController
 import com.oguzhanaslann.canonicalayouts.ui.theme.CanonicaLayoutsTheme
 
 private const val listDetail = "List Detail"
-private const val settings = "settings"
+private const val supportingPane = "Supporting Pane"
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,25 +90,34 @@ fun MainScreen() {
 
 @Composable
 private fun navigationSuiteItems(
-    currentDestination: NavDestination?, navHost: NavHostController
+    currentDestination: NavDestination?,
+    navHost: NavHostController
 ): NavigationSuiteScope.() -> Unit = {
-    item(selected = currentDestination?.hierarchy?.any { it.route == listDetail } == true,
+    item(
+        selected = currentDestination?.hierarchy?.any { it.route == listDetail } == true,
         onClick = {
             navHost.navigate(listDetail)
         },
         icon = {
             Image(
-                imageVector = Icons.Default.Home, contentDescription = "Home"
+                imageVector = Icons.AutoMirrored.Filled.List,
+                contentDescription = "List Detail"
             )
-        })
+        }
+    )
 
-    item(selected = currentDestination?.hierarchy?.any { it.route == settings } == true, onClick = {
-        navHost.navigate(settings)
-    }, icon = {
-        Image(
-            imageVector = Icons.Default.Settings, contentDescription = "Settings"
-        )
-    })
+    item(
+        selected = currentDestination?.hierarchy?.any { it.route == supportingPane } == true,
+        onClick = {
+            navHost.navigate(supportingPane)
+        },
+        icon = {
+            Image(
+                imageVector = Icons.Filled.Menu,
+                contentDescription = "Supporting Pane"
+            )
+        }
+    )
 }
 
 @Composable
@@ -121,167 +133,9 @@ fun MainScreenNavigationHost(
             ListDetailView()
         }
 
-        composable(settings) {
-            SettingsView()
+        composable(supportingPane) {
+           SupportingPaneView()
         }
-    }
-}
-
-@Composable
-private fun SettingsView() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Settings")
-    }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun ListDetailView() {
-    val navigator = rememberListDetailPaneScaffoldNavigator<Person>()
-
-    BackHandler(navigator.canNavigateBack()) {
-        navigator.navigateBack()
-    }
-
-    ListDetailPaneScaffold(
-        modifier = Modifier.fillMaxSize(),
-        directive = navigator.scaffoldDirective,
-        value = navigator.scaffoldValue,
-        listPane = { PersonListPane(navigator) },
-        detailPane = { PersonDetailPane(navigator) },
-        extraPane = { ContactPane(navigator) }
-    )
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun ThreePaneScaffoldScope.ContactPane(navigator: ThreePaneScaffoldNavigator<Person>) {
-    AnimatedPane {
-        val person = navigator.currentDestination?.content
-        if (person != null) {
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("Phone: ${person.phone}")
-                Text("Email: ${person.email}")
-            }
-        } else {
-            FooterDetailView(text = "No person selected - extra")
-        }
-    }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun ThreePaneScaffoldScope.PersonDetailPane(navigator: ThreePaneScaffoldNavigator<Person>) {
-    AnimatedPane {
-        val person = navigator.currentDestination?.content
-        if (person != null) {
-            PersonDetailsView(person, navigator)
-        } else {
-            FooterDetailView()
-        }
-    }
-}
-
-
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-@Composable
-fun PersonDetailsView(person: Person, navigator: ThreePaneScaffoldNavigator<Person>) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            CircularImage(person)
-            Text(text = person.personNane)
-            Button(
-                onClick = {
-                    navigator.navigateTo(ListDetailPaneScaffoldRole.Extra, person)
-                }
-            ) {
-                Text("Contact")
-            }
-        }
-    }
-}
-
-@Composable
-private fun FooterDetailView(text : String = "No person selected") {
-    Box(
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text)
-    }
-}
-
-@Composable
-@OptIn(ExperimentalMaterial3AdaptiveApi::class)
-private fun ThreePaneScaffoldScope.PersonListPane(navigator: ThreePaneScaffoldNavigator<Person>) {
-    AnimatedPane {
-        PersonList(
-            onItemClick = { item ->
-                // Navigate to the detail pane with the passed item
-                navigator.navigateTo(ListDetailPaneScaffoldRole.Detail, item)
-            }
-        )
-    }
-}
-
-@Composable
-fun PersonList(onItemClick: (Person) -> Unit) {
-    LazyColumn(
-        modifier = Modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(people) { person ->
-            PersonCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        onItemClick(person)
-                    },
-                person = person
-            )
-        }
-    }
-}
-
-@Composable
-fun PersonCard(
-    modifier: Modifier = Modifier, person: Person
-) {
-    Card(modifier = modifier) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            CircularImage(person)
-            Spacer(modifier = Modifier.size(16.dp))
-            Text(text = person.personNane)
-        }
-    }
-}
-
-
-@Composable
-private fun CircularImage(person: Person) {
-    Surface(
-        shape = CircleShape,
-    ) {
-        Image(
-            contentDescription = "Person - ${person.personNane}",
-            painter = painterResource(id = person.imageRes),
-        )
     }
 }
 
