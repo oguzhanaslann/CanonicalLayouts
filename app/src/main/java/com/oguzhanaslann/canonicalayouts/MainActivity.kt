@@ -8,17 +8,21 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -148,17 +152,74 @@ private fun ListDetailView() {
         directive = navigator.scaffoldDirective,
         value = navigator.scaffoldValue,
         listPane = { PersonListPane(navigator) },
-        detailPane = { PersonDetailPane(navigator) }
+        detailPane = { PersonDetailPane(navigator) },
+        extraPane = { ContactPane(navigator) }
     )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+private fun ThreePaneScaffoldScope.ContactPane(navigator: ThreePaneScaffoldNavigator<Person>) {
+    AnimatedPane {
+        val person = navigator.currentDestination?.content
+        if (person != null) {
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Phone: ${person.phone}")
+                Text("Email: ${person.email}")
+            }
+        } else {
+            FooterDetailView(text = "No person selected - extra")
+        }
+    }
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3AdaptiveApi::class)
 private fun ThreePaneScaffoldScope.PersonDetailPane(navigator: ThreePaneScaffoldNavigator<Person>) {
     AnimatedPane {
-        navigator.currentDestination?.content?.let {
-            PersonDetails(it)
+        val person = navigator.currentDestination?.content
+        if (person != null) {
+            PersonDetailsView(person, navigator)
+        } else {
+            FooterDetailView()
         }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
+@Composable
+fun PersonDetailsView(person: Person, navigator: ThreePaneScaffoldNavigator<Person>) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularImage(person)
+            Text(text = person.personNane)
+            Button(
+                onClick = {
+                    navigator.navigateTo(ListDetailPaneScaffoldRole.Extra, person)
+                }
+            ) {
+                Text("Contact")
+            }
+        }
+    }
+}
+
+@Composable
+private fun FooterDetailView(text : String = "No person selected") {
+    Box(
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text)
     }
 }
 
@@ -204,41 +265,23 @@ fun PersonCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Surface(
-                shape = CircleShape,
-            ) {
-                Image(
-                    contentDescription = "Person - ${person.personNane}",
-                    painter = painterResource(id = person.imageRes),
-                )
-            }
-            Text(
-                text = person.personNane
-            )
+            CircularImage(person)
+            Spacer(modifier = Modifier.size(16.dp))
+            Text(text = person.personNane)
         }
     }
 }
 
+
 @Composable
-fun PersonDetails(person: Person) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+private fun CircularImage(person: Person) {
+    Surface(
+        shape = CircleShape,
     ) {
-        Column {
-            Surface(
-                shape = CircleShape,
-            ) {
-                Image(
-                    contentDescription = "Person - ${person.personNane}",
-                    painter = painterResource(id = person.imageRes),
-                )
-            }
-            Text(
-                text = person.personNane, modifier = Modifier.padding(16.dp)
-            )
-        }
+        Image(
+            contentDescription = "Person - ${person.personNane}",
+            painter = painterResource(id = person.imageRes),
+        )
     }
 }
 
